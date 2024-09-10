@@ -1,5 +1,9 @@
 import dml.common.repository.TestCommonRepository;
+import dml.common.repository.TestCommonSingletonRepository;
+import dml.id.entity.LongIdGenerator;
 import dml.largescaletaskmanagement.repository.LargeScaleTaskRepository;
+import dml.largescaletaskmanagement.repository.LargeScaleTaskSegmentIDGeneratorRepository;
+import dml.largescaletaskmanagement.repository.LargeScaleTaskSegmentRepository;
 import dml.largescaletaskmanagement.service.LargeScaleTaskService;
 import dml.largescaletaskmanagement.service.repositoryset.LargeScaleTaskServiceRepositorySet;
 import dml.largescaletaskmanagement.service.result.TakeTaskSegmentToExecuteResult;
@@ -69,7 +73,21 @@ public class ManageTask {
         public LargeScaleTaskRepository getLargeScaleTaskRepository() {
             return largeScaleTaskRepository;
         }
+
+        @Override
+        public LargeScaleTaskSegmentRepository getLargeScaleTaskSegmentRepository() {
+            return largeScaleTaskSegmentRepository;
+        }
+
+        @Override
+        public LargeScaleTaskSegmentIDGeneratorRepository getLargeScaleTaskSegmentIDGeneratorRepository() {
+            return largeScaleTaskSegmentIDGeneratorRepository;
+        }
     };
 
     LargeScaleTaskRepository largeScaleTaskRepository = TestCommonRepository.instance(LargeScaleTaskRepository.class);
+    LargeScaleTaskSegmentRepository largeScaleTaskSegmentRepository = TestCommonRepository.instance(LargeScaleTaskSegmentRepository.class);
+    LargeScaleTaskSegmentIDGeneratorRepository largeScaleTaskSegmentIDGeneratorRepository =
+            TestCommonSingletonRepository.instance(LargeScaleTaskSegmentIDGeneratorRepository.class, new LongIdGenerator() {
+            });
 }

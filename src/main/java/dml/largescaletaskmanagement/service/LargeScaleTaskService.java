@@ -42,10 +42,10 @@ public class LargeScaleTaskService {
             return newSegmentId;
         }
 
-        task.setLastSegmentId(newSegmentId);
         Object lastSegmentId = task.getLastSegmentId();
         LargeScaleTaskSegment lastSegment = segmentRepository.take(lastSegmentId);
         lastSegment.setNextSegmentId(newSegmentId);
+        task.setLastSegmentId(newSegmentId);
         return newSegmentId;
     }
 
