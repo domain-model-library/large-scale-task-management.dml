@@ -14,15 +14,21 @@ public class LargeScaleTaskService {
      * 如果返回null，说明已经存在同名任务，创建失败
      */
     public static LargeScaleTask createTask(LargeScaleTaskServiceRepositorySet largeScaleTaskServiceRepositorySet,
-                                            String taskName, LargeScaleTask newTask) {
+                                            String taskName, LargeScaleTask newTask, long maxTimeToReady, long currentTime) {
         LargeScaleTaskRepository<LargeScaleTask> taskRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskRepository();
 
         newTask.setName(taskName);
+        newTask.setCreateTime(currentTime);
         LargeScaleTask existsTask = taskRepository.putIfAbsent(newTask);
-        if (existsTask != null) {
-            return null;
+        if (existsTask == null) {
+            return newTask;
         }
-        return newTask;
+        if (existsTask.isOverTimeForReady(currentTime, maxTimeToReady)) {
+            taskRepository.remove(taskName);
+            taskRepository.put(newTask);
+            return newTask;
+        }
+        return null;
     }
 
     public static Object addTaskSegment(LargeScaleTaskServiceRepositorySet largeScaleTaskServiceRepositorySet,

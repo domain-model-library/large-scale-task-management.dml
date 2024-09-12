@@ -2,11 +2,13 @@ package dml.largescaletaskmanagement.entity;
 
 public abstract class LargeScaleTaskBase implements LargeScaleTask {
 
-    private Object firstSegmentId;
+    protected Object firstSegmentId;
 
-    private Object lastSegmentId;
+    protected Object lastSegmentId;
 
-    private boolean readyToProcess;
+    protected boolean readyToProcess;
+
+    protected long createTime;
 
     @Override
     public Object getLastSegmentId() {
@@ -36,5 +38,15 @@ public abstract class LargeScaleTaskBase implements LargeScaleTask {
     @Override
     public boolean isReadyToProcess() {
         return readyToProcess;
+    }
+
+    @Override
+    public void setCreateTime(long currentTime) {
+        this.createTime = currentTime;
+    }
+
+    @Override
+    public boolean isOverTimeForReady(long currentTime, long maxTimeToReady) {
+        return !readyToProcess && createTime + maxTimeToReady <= currentTime;
     }
 }

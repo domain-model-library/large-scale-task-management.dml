@@ -15,10 +15,11 @@ public class ManageTask {
 
     @Test
     public void test() {
+        long currentTime = 0L;
         //创建一个“全服邮件发送”的任务
         String taskName = "sendGlobalMail";
         LargeScaleTaskService.createTask(largeScaleTaskServiceRepositorySet,
-                taskName, new TestTask());
+                taskName, new TestTask(), 1000L, currentTime);
 
         //总共要发送20封邮件，分两个任务段发送。所以添加两个任务段
         Object segmentId1 = LargeScaleTaskService.addTaskSegment(largeScaleTaskServiceRepositorySet,
@@ -29,7 +30,6 @@ public class ManageTask {
                 taskName);
 
         //拿出一个任务段（总是从链表的头上拿），准备执行
-        long currentTime = 0L;
         long maxExecutionTime = 1000L;
         TakeTaskSegmentToExecuteResult takeTaskSegmentToExecuteResult1 = LargeScaleTaskService.takeTaskSegmentToExecute(largeScaleTaskServiceRepositorySet,
                 taskName, currentTime, maxExecutionTime);

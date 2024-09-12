@@ -14,4 +14,8 @@ public interface LargeScaleTask {
     void readyToProcess();
 
     boolean isReadyToProcess();
+
+    void setCreateTime(long currentTime);
+
+    boolean isOverTimeForReady(long currentTime, long maxTimeToReady);
 }
