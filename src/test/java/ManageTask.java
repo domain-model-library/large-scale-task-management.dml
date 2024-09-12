@@ -25,6 +25,8 @@ public class ManageTask {
                 taskName, new TestTaskSegment());
         Object segmentId2 = LargeScaleTaskService.addTaskSegment(largeScaleTaskServiceRepositorySet,
                 taskName, new TestTaskSegment());
+        LargeScaleTaskService.setTaskReadyToProcess(largeScaleTaskServiceRepositorySet,
+                taskName);
 
         //拿出一个任务段（总是从链表的头上拿），准备执行
         long currentTime = 0L;

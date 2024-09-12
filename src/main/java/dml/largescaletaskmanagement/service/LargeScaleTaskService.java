@@ -49,6 +49,14 @@ public class LargeScaleTaskService {
         return newSegmentId;
     }
 
+    public static void setTaskReadyToProcess(LargeScaleTaskServiceRepositorySet largeScaleTaskServiceRepositorySet,
+                                             String taskName) {
+        LargeScaleTaskRepository<LargeScaleTask> taskRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskRepository();
+
+        LargeScaleTask task = taskRepository.take(taskName);
+        task.readyToProcess();
+    }
+
     public static TakeTaskSegmentToExecuteResult takeTaskSegmentToExecute(LargeScaleTaskServiceRepositorySet largeScaleTaskServiceRepositorySet,
                                                                           String taskName, long currentTime, long maxExecutionTime) {
         LargeScaleTaskRepository<LargeScaleTask> taskRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskRepository();
@@ -56,6 +64,9 @@ public class LargeScaleTaskService {
 
         TakeTaskSegmentToExecuteResult result = new TakeTaskSegmentToExecuteResult();
         LargeScaleTask task = taskRepository.take(taskName);
+        if (!task.isReadyToProcess()) {
+            return result;
+        }
         LargeScaleTaskSegment taskSegment = segmentRepository.take(task.getFirstSegmentId());
         while (!taskSegment.isToProcess()) {
             if (taskSegment.isCompleted()) {

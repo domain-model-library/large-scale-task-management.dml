@@ -10,4 +10,8 @@ public interface LargeScaleTask {
     void setFirstSegmentId(Object firstSegmentId);
 
     void setLastSegmentId(Object lastSegmentId);
+
+    void readyToProcess();
+
+    boolean isReadyToProcess();
 }

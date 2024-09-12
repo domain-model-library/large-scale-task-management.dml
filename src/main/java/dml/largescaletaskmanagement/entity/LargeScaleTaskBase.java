@@ -6,6 +6,8 @@ public abstract class LargeScaleTaskBase implements LargeScaleTask {
 
     private Object lastSegmentId;
 
+    private boolean readyToProcess;
+
     @Override
     public Object getLastSegmentId() {
         return lastSegmentId;
@@ -24,5 +26,15 @@ public abstract class LargeScaleTaskBase implements LargeScaleTask {
     @Override
     public void setLastSegmentId(Object lastSegmentId) {
         this.lastSegmentId = lastSegmentId;
+    }
+
+    @Override
+    public void readyToProcess() {
+        readyToProcess = true;
+    }
+
+    @Override
+    public boolean isReadyToProcess() {
+        return readyToProcess;
     }
 }
