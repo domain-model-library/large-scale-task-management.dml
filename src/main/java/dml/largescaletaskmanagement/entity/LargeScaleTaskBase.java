@@ -49,4 +49,9 @@ public abstract class LargeScaleTaskBase implements LargeScaleTask {
     public boolean isOverTimeForReady(long currentTime, long maxTimeToReady) {
         return !readyToProcess && createTime + maxTimeToReady <= currentTime;
     }
+
+    @Override
+    public boolean isEmpty() {
+        return firstSegmentId == null;
+    }
 }

@@ -73,6 +73,11 @@ public class LargeScaleTaskService {
         if (!task.isReadyToProcess()) {
             return result;
         }
+        if (task.isEmpty()) {
+            taskRepository.remove(taskName);
+            result.setTaskCompleted(true);
+            return result;
+        }
         LargeScaleTaskSegment taskSegment = segmentRepository.take(task.getFirstSegmentId());
         while (!taskSegment.isToProcess()) {
             if (taskSegment.isCompleted()) {

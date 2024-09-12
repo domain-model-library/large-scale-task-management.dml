@@ -18,4 +18,6 @@ public interface LargeScaleTask {
     void setCreateTime(long currentTime);
 
     boolean isOverTimeForReady(long currentTime, long maxTimeToReady);
+
+    boolean isEmpty();
 }
