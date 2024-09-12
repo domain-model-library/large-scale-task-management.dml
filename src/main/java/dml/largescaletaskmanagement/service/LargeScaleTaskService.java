@@ -14,18 +14,13 @@ public class LargeScaleTaskService {
      * 如果返回null，说明已经存在同名任务，创建失败
      */
     public static LargeScaleTask createTask(LargeScaleTaskServiceRepositorySet largeScaleTaskServiceRepositorySet,
-                                            String taskName, LargeScaleTask newTask, long maxTimeToReady, long currentTime) {
+                                            String taskName, LargeScaleTask newTask, long currentTime) {
         LargeScaleTaskRepository<LargeScaleTask> taskRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskRepository();
 
         newTask.setName(taskName);
         newTask.setCreateTime(currentTime);
         LargeScaleTask existsTask = taskRepository.putIfAbsent(newTask);
         if (existsTask == null) {
-            return newTask;
-        }
-        if (existsTask.isOverTimeForReady(currentTime, maxTimeToReady)) {
-            taskRepository.remove(taskName);
-            taskRepository.put(newTask);
             return newTask;
         }
         return null;
@@ -64,12 +59,17 @@ public class LargeScaleTaskService {
     }
 
     public static TakeTaskSegmentToExecuteResult takeTaskSegmentToExecute(LargeScaleTaskServiceRepositorySet largeScaleTaskServiceRepositorySet,
-                                                                          String taskName, long currentTime, long maxExecutionTime) {
+                                                                          String taskName, long currentTime, long maxSegmentExecutionTime, long maxTimeToTaskReady) {
         LargeScaleTaskRepository<LargeScaleTask> taskRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskRepository();
         LargeScaleTaskSegmentRepository<LargeScaleTaskSegment, Object> segmentRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskSegmentRepository();
 
         TakeTaskSegmentToExecuteResult result = new TakeTaskSegmentToExecuteResult();
         LargeScaleTask task = taskRepository.take(taskName);
+        if (task.isOverTimeForReady(currentTime, maxTimeToTaskReady)) {
+            taskRepository.remove(taskName);
+            result.setTaskCompleted(true);
+            return result;
+        }
         if (!task.isReadyToProcess()) {
             return result;
         }
@@ -92,7 +92,7 @@ public class LargeScaleTaskService {
                 continue;
             }
             if (taskSegment.isProcessing()) {
-                taskSegment.checkProcessingTimeoutAndResetToProcess(currentTime, maxExecutionTime);
+                taskSegment.checkProcessingTimeoutAndResetToProcess(currentTime, maxSegmentExecutionTime);
                 if (taskSegment.isToProcess()) {
                     break;
                 }

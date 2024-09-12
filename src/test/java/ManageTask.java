@@ -19,7 +19,7 @@ public class ManageTask {
         //创建一个“全服邮件发送”的任务
         String taskName = "sendGlobalMail";
         LargeScaleTaskService.createTask(largeScaleTaskServiceRepositorySet,
-                taskName, new TestTask(), 1000L, currentTime);
+                taskName, new TestTask(), currentTime);
 
         //总共要发送20封邮件，分两个任务段发送。所以添加两个任务段
         Object segmentId1 = LargeScaleTaskService.addTaskSegment(largeScaleTaskServiceRepositorySet,
@@ -31,18 +31,19 @@ public class ManageTask {
 
         //拿出一个任务段（总是从链表的头上拿），准备执行
         long maxExecutionTime = 1000L;
+        long maxTimeToTaskReady = 1000L;
         TakeTaskSegmentToExecuteResult takeTaskSegmentToExecuteResult1 = LargeScaleTaskService.takeTaskSegmentToExecute(largeScaleTaskServiceRepositorySet,
-                taskName, currentTime, maxExecutionTime);
+                taskName, currentTime, maxExecutionTime, maxTimeToTaskReady);
         assertNotNull(takeTaskSegmentToExecuteResult1.getTaskSegment());
 
         //再拿出一个任务段，准备执行
         TakeTaskSegmentToExecuteResult takeTaskSegmentToExecuteResult2 = LargeScaleTaskService.takeTaskSegmentToExecute(largeScaleTaskServiceRepositorySet,
-                taskName, currentTime, maxExecutionTime);
+                taskName, currentTime, maxExecutionTime, maxTimeToTaskReady);
         assertNotNull(takeTaskSegmentToExecuteResult2.getTaskSegment());
 
         //拿第3个任务段，应该拿不到
         TakeTaskSegmentToExecuteResult takeTaskSegmentToExecuteResult3 = LargeScaleTaskService.takeTaskSegmentToExecute(largeScaleTaskServiceRepositorySet,
-                taskName, currentTime, maxExecutionTime);
+                taskName, currentTime, maxExecutionTime, maxTimeToTaskReady);
         assertNull(takeTaskSegmentToExecuteResult3.getTaskSegment());
         assertFalse(takeTaskSegmentToExecuteResult3.isTaskCompleted());
 
@@ -55,7 +56,7 @@ public class ManageTask {
 
         //拿出一个任务段，准备执行，应该是第2个任务段，因为发现第2个任务段执行超时后重新变成了待执行状态
         TakeTaskSegmentToExecuteResult takeTaskSegmentToExecuteResult4 = LargeScaleTaskService.takeTaskSegmentToExecute(largeScaleTaskServiceRepositorySet,
-                taskName, currentTime, maxExecutionTime);
+                taskName, currentTime, maxExecutionTime, maxTimeToTaskReady);
         assertNotNull(takeTaskSegmentToExecuteResult4.getTaskSegment());
 
         //第2个任务段执行完毕
@@ -64,7 +65,7 @@ public class ManageTask {
 
         //拿出一个任务段，准备执行，应该拿不到，任务已经完成
         TakeTaskSegmentToExecuteResult takeTaskSegmentToExecuteResult5 = LargeScaleTaskService.takeTaskSegmentToExecute(largeScaleTaskServiceRepositorySet,
-                taskName, currentTime, maxExecutionTime);
+                taskName, currentTime, maxExecutionTime, maxTimeToTaskReady);
         assertNull(takeTaskSegmentToExecuteResult5.getTaskSegment());
         assertTrue(takeTaskSegmentToExecuteResult5.isTaskCompleted());
     }
