@@ -26,6 +26,12 @@ public class LargeScaleTaskService {
         return null;
     }
 
+    public static LargeScaleTask removeTask(LargeScaleTaskServiceRepositorySet largeScaleTaskServiceRepositorySet,
+                                            String taskName) {
+        LargeScaleTaskRepository<LargeScaleTask> taskRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskRepository();
+        return taskRepository.remove(taskName);
+    }
+
     public static Object addTaskSegment(LargeScaleTaskServiceRepositorySet largeScaleTaskServiceRepositorySet,
                                         String taskName, LargeScaleTaskSegment newTaskSegment) {
         LargeScaleTaskRepository<LargeScaleTask> taskRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskRepository();
@@ -74,7 +80,6 @@ public class LargeScaleTaskService {
             return result;
         }
         if (task.isEmpty()) {
-            taskRepository.remove(taskName);
             result.setTaskCompleted(true);
             return result;
         }
@@ -83,7 +88,7 @@ public class LargeScaleTaskService {
             if (taskSegment.isCompleted()) {
                 segmentRepository.remove(taskSegment.getId());
                 if (taskSegment.getNextSegmentId() == null) {
-                    taskRepository.remove(taskName);
+                    task.setFirstSegmentId(null);
                     result.setTaskCompleted(true);
                     return result;
                 }
