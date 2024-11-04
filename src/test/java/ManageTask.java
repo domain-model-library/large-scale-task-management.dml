@@ -91,6 +91,5 @@ public class ManageTask {
     LargeScaleTaskRepository largeScaleTaskRepository = TestCommonRepository.instance(LargeScaleTaskRepository.class);
     LargeScaleTaskSegmentRepository largeScaleTaskSegmentRepository = TestCommonRepository.instance(LargeScaleTaskSegmentRepository.class);
     LargeScaleTaskSegmentIDGeneratorRepository largeScaleTaskSegmentIDGeneratorRepository =
-            TestCommonSingletonRepository.instance(LargeScaleTaskSegmentIDGeneratorRepository.class, new LongIdGenerator() {
-            });
+            TestCommonSingletonRepository.instance(LargeScaleTaskSegmentIDGeneratorRepository.class, new LongIdGenerator());
 }
