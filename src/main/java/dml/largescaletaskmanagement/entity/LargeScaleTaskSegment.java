@@ -17,6 +17,8 @@ public interface LargeScaleTaskSegment {
 
     void checkProcessingTimeoutAndResetToProcess(long currentTime, long maxExecutionTime);
 
+    void resetToProcess();
+
     void setProcessing(long currentTime);
 
     void setCompleted();
