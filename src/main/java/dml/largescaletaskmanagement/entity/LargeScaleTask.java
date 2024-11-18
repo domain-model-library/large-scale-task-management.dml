@@ -3,6 +3,8 @@ package dml.largescaletaskmanagement.entity;
 public interface LargeScaleTask {
     void setName(String taskName);
 
+    String getName();
+
     Object getLastSegmentId();
 
     Object getFirstSegmentId();
