@@ -71,6 +71,10 @@ public class LargeScaleTaskService {
 
         TakeTaskSegmentToExecuteResult result = new TakeTaskSegmentToExecuteResult();
         LargeScaleTask task = taskRepository.take(taskName);
+        if (task == null) {
+            result.setTaskNotExists(true);
+            return result;
+        }
         if (task.isOverTimeForReady(currentTime, maxTimeToTaskReady)) {
             taskRepository.remove(taskName);
             result.setTaskCompleted(true);
