@@ -3,7 +3,6 @@ package dml.largescaletaskmanagement.service;
 import dml.largescaletaskmanagement.entity.LargeScaleTask;
 import dml.largescaletaskmanagement.entity.LargeScaleTaskSegment;
 import dml.largescaletaskmanagement.repository.LargeScaleTaskRepository;
-import dml.largescaletaskmanagement.repository.LargeScaleTaskSegmentIDGeneratorRepository;
 import dml.largescaletaskmanagement.repository.LargeScaleTaskSegmentRepository;
 import dml.largescaletaskmanagement.service.repositoryset.LargeScaleTaskServiceRepositorySet;
 import dml.largescaletaskmanagement.service.result.TakeTaskSegmentToExecuteResult;
@@ -36,11 +35,8 @@ public class LargeScaleTaskService {
                                         String taskName, LargeScaleTaskSegment newTaskSegment) {
         LargeScaleTaskRepository<LargeScaleTask> taskRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskRepository();
         LargeScaleTaskSegmentRepository<LargeScaleTaskSegment, Object> segmentRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskSegmentRepository();
-        LargeScaleTaskSegmentIDGeneratorRepository segmentIDGeneratorRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskSegmentIDGeneratorRepository();
 
-        Object newSegmentId = segmentIDGeneratorRepository.take().generateId();
-        newTaskSegment.setId(newSegmentId);
-        segmentRepository.put(newTaskSegment);
+        Object newSegmentId = newTaskSegment.getId();
 
         LargeScaleTask task = taskRepository.take(taskName);
         if (task.getFirstSegmentId() == null) {

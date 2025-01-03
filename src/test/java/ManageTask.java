@@ -1,8 +1,5 @@
 import dml.common.repository.TestCommonRepository;
-import dml.common.repository.TestCommonSingletonRepository;
-import dml.id.entity.LongIdGenerator;
 import dml.largescaletaskmanagement.repository.LargeScaleTaskRepository;
-import dml.largescaletaskmanagement.repository.LargeScaleTaskSegmentIDGeneratorRepository;
 import dml.largescaletaskmanagement.repository.LargeScaleTaskSegmentRepository;
 import dml.largescaletaskmanagement.service.LargeScaleTaskService;
 import dml.largescaletaskmanagement.service.repositoryset.LargeScaleTaskServiceRepositorySet;
@@ -23,9 +20,9 @@ public class ManageTask {
 
         //总共要发送20封邮件，分两个任务段发送。所以添加两个任务段
         Object segmentId1 = LargeScaleTaskService.addTaskSegment(largeScaleTaskServiceRepositorySet,
-                taskName, new TestTaskSegment());
+                taskName, new TestTaskSegment(largeScaleTaskSegmentIDGenerator++));
         Object segmentId2 = LargeScaleTaskService.addTaskSegment(largeScaleTaskServiceRepositorySet,
-                taskName, new TestTaskSegment());
+                taskName, new TestTaskSegment(largeScaleTaskSegmentIDGenerator++));
         LargeScaleTaskService.setTaskReadyToProcess(largeScaleTaskServiceRepositorySet,
                 taskName);
 
@@ -82,14 +79,9 @@ public class ManageTask {
             return largeScaleTaskSegmentRepository;
         }
 
-        @Override
-        public LargeScaleTaskSegmentIDGeneratorRepository getLargeScaleTaskSegmentIDGeneratorRepository() {
-            return largeScaleTaskSegmentIDGeneratorRepository;
-        }
     };
 
     LargeScaleTaskRepository largeScaleTaskRepository = TestCommonRepository.instance(LargeScaleTaskRepository.class);
     LargeScaleTaskSegmentRepository largeScaleTaskSegmentRepository = TestCommonRepository.instance(LargeScaleTaskSegmentRepository.class);
-    LargeScaleTaskSegmentIDGeneratorRepository largeScaleTaskSegmentIDGeneratorRepository =
-            TestCommonSingletonRepository.instance(LargeScaleTaskSegmentIDGeneratorRepository.class, new LongIdGenerator());
+    long largeScaleTaskSegmentIDGenerator = 1L;
 }

@@ -24,11 +24,6 @@
             <artifactId>dml-common</artifactId>
             <version>0.0.1</version>
         </dependency>
-        <dependency>
-            <groupId>domain-model-library</groupId>
-            <artifactId>id.dml</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
     </dependencies>
     <build>
         <plugins>
