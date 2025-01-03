@@ -36,6 +36,7 @@ public class LargeScaleTaskService {
         LargeScaleTaskRepository<LargeScaleTask> taskRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskRepository();
         LargeScaleTaskSegmentRepository<LargeScaleTaskSegment, Object> segmentRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskSegmentRepository();
 
+        segmentRepository.put(newTaskSegment);
         Object newSegmentId = newTaskSegment.getId();
 
         LargeScaleTask task = taskRepository.take(taskName);
