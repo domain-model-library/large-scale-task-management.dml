@@ -53,6 +53,15 @@ public class LargeScaleTaskService {
         return newSegmentId;
     }
 
+    public static Object addTaskSegment(LargeScaleTaskServiceRepositorySet largeScaleTaskServiceRepositorySet,
+                                        String taskName, LargeScaleTaskSegment newTaskSegment, LargeScaleTask newTask) {
+        LargeScaleTaskRepository<LargeScaleTask> taskRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskRepository();
+
+        newTask.setName(taskName);
+        taskRepository.takeOrPutIfAbsent(taskName, newTask);
+        return addTaskSegment(largeScaleTaskServiceRepositorySet, taskName, newTaskSegment);
+    }
+
     public static void setTaskReadyToProcess(LargeScaleTaskServiceRepositorySet largeScaleTaskServiceRepositorySet,
                                              String taskName) {
         LargeScaleTaskRepository<LargeScaleTask> taskRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskRepository();
