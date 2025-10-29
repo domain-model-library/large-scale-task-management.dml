@@ -77,7 +77,8 @@ public class LargeScaleTaskService {
                                                                           String taskName, long currentTime, long maxSegmentExecutionTime, long maxTimeToTaskReady) {
         LargeScaleTaskRepository<LargeScaleTask> taskRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskRepository();
         LargeScaleTaskSegmentRepository<LargeScaleTaskSegment, Object> segmentRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskSegmentRepository();
-        SegmentProcessingTimeoutHandlingStrategyRepository segmentProcessingTimeoutHandlingStrategyRepository = largeScaleTaskServiceRepositorySet.getSegmentProcessingTimeoutHandlingStrategyRepository();
+        SegmentProcessingTimeoutHandlingStrategyRepository<SegmentProcessingTimeoutHandlingStrategy> segmentProcessingTimeoutHandlingStrategyRepository
+                = largeScaleTaskServiceRepositorySet.getSegmentProcessingTimeoutHandlingStrategyRepository();
 
         TakeTaskSegmentToExecuteResult result = new TakeTaskSegmentToExecuteResult();
         LargeScaleTask task = taskRepository.take(taskName);

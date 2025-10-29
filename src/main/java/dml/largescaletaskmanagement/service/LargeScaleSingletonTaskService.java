@@ -73,7 +73,7 @@ public class LargeScaleSingletonTaskService {
                                                                           long currentTime, long maxSegmentExecutionTime, long maxTimeToTaskReady) {
         LargeScaleSingletonTaskRepository<LargeScaleSingletonTask> taskRepository = repositorySet.getLargeScaleSingletonTaskRepository();
         LargeScaleTaskSegmentRepository<LargeScaleTaskSegment, Object> segmentRepository = repositorySet.getLargeScaleTaskSegmentRepository();
-        SegmentProcessingTimeoutHandlingStrategyRepository segmentProcessingTimeoutHandlingStrategyRepository =
+        SegmentProcessingTimeoutHandlingStrategyRepository<SegmentProcessingTimeoutHandlingStrategy> segmentProcessingTimeoutHandlingStrategyRepository =
                 repositorySet.getSegmentProcessingTimeoutHandlingStrategyRepository();
 
         TakeTaskSegmentToExecuteResult result = new TakeTaskSegmentToExecuteResult();

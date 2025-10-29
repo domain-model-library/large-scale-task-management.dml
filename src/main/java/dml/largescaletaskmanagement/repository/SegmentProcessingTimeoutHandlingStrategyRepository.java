@@ -3,5 +3,5 @@ package dml.largescaletaskmanagement.repository;
 import dml.common.repository.CommonSingletonRepository;
 import dml.largescaletaskmanagement.entity.SegmentProcessingTimeoutHandlingStrategy;
 
-public interface SegmentProcessingTimeoutHandlingStrategyRepository extends CommonSingletonRepository<SegmentProcessingTimeoutHandlingStrategy> {
+public interface SegmentProcessingTimeoutHandlingStrategyRepository<E extends SegmentProcessingTimeoutHandlingStrategy> extends CommonSingletonRepository<E> {
 }
