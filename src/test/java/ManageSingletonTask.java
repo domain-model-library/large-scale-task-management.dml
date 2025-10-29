@@ -1,7 +1,9 @@
 import dml.common.repository.TestCommonRepository;
 import dml.common.repository.TestCommonSingletonRepository;
+import dml.largescaletaskmanagement.entity.ResetSegmentToProcessIfTimeout;
 import dml.largescaletaskmanagement.repository.LargeScaleSingletonTaskRepository;
 import dml.largescaletaskmanagement.repository.LargeScaleTaskSegmentRepository;
+import dml.largescaletaskmanagement.repository.SegmentProcessingTimeoutHandlingStrategyRepository;
 import dml.largescaletaskmanagement.service.LargeScaleSingletonTaskService;
 import dml.largescaletaskmanagement.service.repositoryset.LargeScaleSingletonTaskServiceRepositorySet;
 import dml.largescaletaskmanagement.service.result.TakeTaskSegmentToExecuteResult;
@@ -78,9 +80,17 @@ public class ManageSingletonTask {
             return largeScaleTaskSegmentRepository;
         }
 
+        @Override
+        public SegmentProcessingTimeoutHandlingStrategyRepository getSegmentProcessingTimeoutHandlingStrategyRepository() {
+            return segmentProcessingTimeoutHandlingStrategyRepository;
+        }
+
     };
 
     LargeScaleSingletonTaskRepository largeScaleSingletonTaskRepository = TestCommonSingletonRepository.instance(LargeScaleSingletonTaskRepository.class);
     LargeScaleTaskSegmentRepository largeScaleTaskSegmentRepository = TestCommonRepository.instance(LargeScaleTaskSegmentRepository.class);
+    SegmentProcessingTimeoutHandlingStrategyRepository segmentProcessingTimeoutHandlingStrategyRepository
+            = TestCommonSingletonRepository.instance(SegmentProcessingTimeoutHandlingStrategyRepository.class,
+            new ResetSegmentToProcessIfTimeout());
     long largeScaleTaskSegmentIDGenerator = 1L;
 }

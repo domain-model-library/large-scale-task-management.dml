@@ -47,4 +47,9 @@ public abstract class LargeScaleTaskSegmentBase implements LargeScaleTaskSegment
     public long getProcessingStartTime() {
         return processingStartTime;
     }
+
+    @Override
+    public void resetToProcess() {
+        processing = false;
+    }
 }

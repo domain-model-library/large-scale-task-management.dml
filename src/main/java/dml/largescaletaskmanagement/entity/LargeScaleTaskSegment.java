@@ -19,4 +19,6 @@ public interface LargeScaleTaskSegment {
     void setCompleted();
 
     long getProcessingStartTime();
+
+    void resetToProcess();
 }

@@ -5,7 +5,7 @@ import dml.largescaletaskmanagement.entity.LargeScaleTaskSegment;
 import dml.largescaletaskmanagement.entity.SegmentProcessingTimeoutHandlingStrategy;
 import dml.largescaletaskmanagement.repository.LargeScaleTaskRepository;
 import dml.largescaletaskmanagement.repository.LargeScaleTaskSegmentRepository;
-import dml.largescaletaskmanagement.repository.SegmentTimeoutHandlingStrategyRepository;
+import dml.largescaletaskmanagement.repository.SegmentProcessingTimeoutHandlingStrategyRepository;
 import dml.largescaletaskmanagement.service.repositoryset.LargeScaleTaskServiceRepositorySet;
 import dml.largescaletaskmanagement.service.result.TakeTaskSegmentToExecuteResult;
 
@@ -77,7 +77,7 @@ public class LargeScaleTaskService {
                                                                           String taskName, long currentTime, long maxSegmentExecutionTime, long maxTimeToTaskReady) {
         LargeScaleTaskRepository<LargeScaleTask> taskRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskRepository();
         LargeScaleTaskSegmentRepository<LargeScaleTaskSegment, Object> segmentRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskSegmentRepository();
-        SegmentTimeoutHandlingStrategyRepository segmentTimeoutHandlingStrategyRepository = largeScaleTaskServiceRepositorySet.getSegmentTimeoutHandlingStrategyRepository();
+        SegmentProcessingTimeoutHandlingStrategyRepository segmentProcessingTimeoutHandlingStrategyRepository = largeScaleTaskServiceRepositorySet.getSegmentProcessingTimeoutHandlingStrategyRepository();
 
         TakeTaskSegmentToExecuteResult result = new TakeTaskSegmentToExecuteResult();
         LargeScaleTask task = taskRepository.take(taskName);
@@ -98,7 +98,7 @@ public class LargeScaleTaskService {
             return result;
         }
         LargeScaleTaskSegment taskSegment = segmentRepository.take(task.getFirstSegmentId());
-        SegmentProcessingTimeoutHandlingStrategy segmentProcessingTimeoutHandlingStrategy = segmentTimeoutHandlingStrategyRepository.get();
+        SegmentProcessingTimeoutHandlingStrategy segmentProcessingTimeoutHandlingStrategy = segmentProcessingTimeoutHandlingStrategyRepository.get();
         while (!taskSegment.isToProcess()) {
             if (taskSegment.isCompleted()) {
                 segmentRepository.remove(taskSegment.getId());
