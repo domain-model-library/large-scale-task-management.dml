@@ -2,8 +2,10 @@ package dml.largescaletaskmanagement.service;
 
 import dml.largescaletaskmanagement.entity.LargeScaleTask;
 import dml.largescaletaskmanagement.entity.LargeScaleTaskSegment;
+import dml.largescaletaskmanagement.entity.SegmentProcessingTimeoutHandlingStrategy;
 import dml.largescaletaskmanagement.repository.LargeScaleTaskRepository;
 import dml.largescaletaskmanagement.repository.LargeScaleTaskSegmentRepository;
+import dml.largescaletaskmanagement.repository.SegmentTimeoutHandlingStrategyRepository;
 import dml.largescaletaskmanagement.service.repositoryset.LargeScaleTaskServiceRepositorySet;
 import dml.largescaletaskmanagement.service.result.TakeTaskSegmentToExecuteResult;
 
@@ -75,6 +77,7 @@ public class LargeScaleTaskService {
                                                                           String taskName, long currentTime, long maxSegmentExecutionTime, long maxTimeToTaskReady) {
         LargeScaleTaskRepository<LargeScaleTask> taskRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskRepository();
         LargeScaleTaskSegmentRepository<LargeScaleTaskSegment, Object> segmentRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskSegmentRepository();
+        SegmentTimeoutHandlingStrategyRepository segmentTimeoutHandlingStrategyRepository = largeScaleTaskServiceRepositorySet.getSegmentTimeoutHandlingStrategyRepository();
 
         TakeTaskSegmentToExecuteResult result = new TakeTaskSegmentToExecuteResult();
         LargeScaleTask task = taskRepository.take(taskName);
@@ -95,6 +98,7 @@ public class LargeScaleTaskService {
             return result;
         }
         LargeScaleTaskSegment taskSegment = segmentRepository.take(task.getFirstSegmentId());
+        SegmentProcessingTimeoutHandlingStrategy segmentProcessingTimeoutHandlingStrategy = segmentTimeoutHandlingStrategyRepository.get();
         while (!taskSegment.isToProcess()) {
             if (taskSegment.isCompleted()) {
                 segmentRepository.remove(taskSegment.getId());
@@ -108,7 +112,7 @@ public class LargeScaleTaskService {
                 continue;
             }
             if (taskSegment.isProcessing()) {
-                taskSegment.checkProcessingTimeoutAndResetToProcess(currentTime, maxSegmentExecutionTime);
+                segmentProcessingTimeoutHandlingStrategy.checkAndHandleProcessingTimeout(taskSegment, currentTime, maxSegmentExecutionTime);
                 if (taskSegment.isToProcess()) {
                     break;
                 }

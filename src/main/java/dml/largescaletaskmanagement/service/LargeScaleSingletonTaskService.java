@@ -104,7 +104,7 @@ public class LargeScaleSingletonTaskService {
                 continue;
             }
             if (taskSegment.isProcessing()) {
-                taskSegment.checkProcessingTimeoutAndResetToProcess(currentTime, maxSegmentExecutionTime);
+                taskSegment.checkProcessingTimeout(currentTime, maxSegmentExecutionTime);
                 if (taskSegment.isToProcess()) {
                     break;
                 }

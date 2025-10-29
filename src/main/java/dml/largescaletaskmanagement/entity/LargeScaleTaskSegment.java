@@ -1,7 +1,6 @@
 package dml.largescaletaskmanagement.entity;
 
 public interface LargeScaleTaskSegment {
-    void setId(Object id);
 
     Object getId();
 
@@ -15,11 +14,9 @@ public interface LargeScaleTaskSegment {
 
     boolean isProcessing();
 
-    void checkProcessingTimeoutAndResetToProcess(long currentTime, long maxExecutionTime);
-
-    void resetToProcess();
-
     void setProcessing(long currentTime);
 
     void setCompleted();
+
+    long getProcessingStartTime();
 }

@@ -33,18 +33,6 @@ public abstract class LargeScaleTaskSegmentBase implements LargeScaleTaskSegment
     }
 
     @Override
-    public void checkProcessingTimeoutAndResetToProcess(long currentTime, long maxExecutionTime) {
-        if (processingStartTime + maxExecutionTime <= currentTime) {
-            processing = false;
-        }
-    }
-
-    @Override
-    public void resetToProcess() {
-        processing = false;
-    }
-
-    @Override
     public void setProcessing(long currentTime) {
         processing = true;
         processingStartTime = currentTime;
@@ -53,5 +41,10 @@ public abstract class LargeScaleTaskSegmentBase implements LargeScaleTaskSegment
     @Override
     public void setCompleted() {
         completed = true;
+    }
+
+    @Override
+    public long getProcessingStartTime() {
+        return processingStartTime;
     }
 }
