@@ -1,5 +1,6 @@
 import dml.common.repository.TestCommonRepository;
 import dml.common.repository.TestCommonSingletonRepository;
+import dml.largescaletaskmanagement.entity.LargeScaleSingletonTask;
 import dml.largescaletaskmanagement.entity.ResetSegmentToProcessIfTimeout;
 import dml.largescaletaskmanagement.repository.LargeScaleSingletonTaskRepository;
 import dml.largescaletaskmanagement.repository.LargeScaleTaskSegmentRepository;
@@ -17,8 +18,14 @@ public class ManageSingletonTask {
     public void test() {
         long currentTime = 0L;
         //创建一个“过期会话”的任务
-        LargeScaleSingletonTaskService.createTask(largeScaleSingletonTaskServiceRepositorySet,
+        LargeScaleSingletonTask task = LargeScaleSingletonTaskService.createTask(largeScaleSingletonTaskServiceRepositorySet,
                 new TestSingletonTask(), currentTime);
+        assertNotNull(task);
+
+        //这时候另一个线程也想创建任务，应该创建失败，而当前线程可以安心慢慢的查询所有会话并添加任务段。
+        LargeScaleSingletonTask task2 = LargeScaleSingletonTaskService.createTask(largeScaleSingletonTaskServiceRepositorySet,
+                new TestSingletonTask(), currentTime);
+        assertNull(task2);
 
         //总共要检测20个会话，分两个任务段发送。所以添加两个任务段
         Object segmentId1 = LargeScaleSingletonTaskService.addTaskSegment(largeScaleSingletonTaskServiceRepositorySet,
@@ -66,6 +73,15 @@ public class ManageSingletonTask {
                 currentTime, maxExecutionTime, maxTimeToTaskReady);
         assertNull(takeTaskSegmentToExecuteResult5.getTaskSegment());
         assertTrue(takeTaskSegmentToExecuteResult5.isTaskCompleted());
+
+        //任务完成了，可以删除任务了
+        LargeScaleSingletonTask removedTask = LargeScaleSingletonTaskService.removeTask(largeScaleSingletonTaskServiceRepositorySet);
+        assertNotNull(removedTask);
+
+        //这个时候意味着一轮全量会话处理完毕，可以开始下一轮全量会话的处理了，所以可以创建新任务了
+        LargeScaleSingletonTask task3 = LargeScaleSingletonTaskService.createTask(largeScaleSingletonTaskServiceRepositorySet,
+                new TestSingletonTask(), currentTime);
+        assertNotNull(task3);
     }
 
     LargeScaleSingletonTaskServiceRepositorySet largeScaleSingletonTaskServiceRepositorySet = new LargeScaleSingletonTaskServiceRepositorySet() {
