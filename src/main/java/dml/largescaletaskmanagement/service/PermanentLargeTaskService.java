@@ -8,8 +8,8 @@ import dml.largescaletaskmanagement.service.repositoryset.PermanentLargeTaskServ
 import dml.largescaletaskmanagement.service.result.TakeTaskSegmentToExecuteResult;
 
 public class PermanentLargeTaskService {
-    public static LargeScaleSingletonTask createTask(PermanentLargeTaskServiceRepositorySet repositorySet,
-                                                     LargeScaleSingletonTask task) {
+    public static <T extends LargeScaleSingletonTask> T createTask(PermanentLargeTaskServiceRepositorySet repositorySet,
+                                                                   T task) {
         LargeScaleSingletonTaskRepository<LargeScaleSingletonTask> taskRepository = repositorySet.getLargeScaleSingletonTaskRepository();
 
         LargeScaleSingletonTask existsTask = taskRepository.putIfAbsent(task);
@@ -119,5 +119,5 @@ public class PermanentLargeTaskService {
             taskSegment.setCompleted();
         }
     }
-    
+
 }
