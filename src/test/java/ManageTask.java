@@ -9,6 +9,8 @@ import dml.largescaletaskmanagement.service.repositoryset.LargeScaleTaskServiceR
 import dml.largescaletaskmanagement.service.result.TakeTaskSegmentToExecuteResult;
 import org.junit.Test;
 
+import java.util.Arrays;
+
 import static org.junit.Assert.*;
 
 public class ManageTask {
@@ -88,6 +90,65 @@ public class ManageTask {
         assertNotNull(takeTaskSegmentToExecuteResult6.getTaskSegment());
 
 
+    }
+
+    @Test
+    public void testRepairBrokenChain() {
+        long currentTime = 0L;
+        long maxExecutionTime = 1000L;
+        long maxTimeToTaskReady = 1000L;
+        String taskName = "repairTask";
+
+        LargeScaleTaskService.createTask(largeScaleTaskServiceRepositorySet,
+                taskName, new TestTask(), currentTime);
+
+        TestTaskSegment segment1 = new TestTaskSegment(largeScaleTaskSegmentIDGenerator++);
+        TestTaskSegment segment2 = new TestTaskSegment(largeScaleTaskSegmentIDGenerator++);
+        LargeScaleTaskService.addTaskSegment(largeScaleTaskServiceRepositorySet, taskName, segment1);
+        LargeScaleTaskService.addTaskSegment(largeScaleTaskServiceRepositorySet, taskName, segment2);
+
+        // 模拟 segment1 -> segment2 的链断了，但任务尾指针还指着 segment2。
+        segment1.setNextSegmentId(null);
+
+        // 断链之后又新增了任务段，说明数据仍可追加，但执行再也遍历不到新段。
+        TestTaskSegment segment3 = new TestTaskSegment(largeScaleTaskSegmentIDGenerator++);
+        LargeScaleTaskService.addTaskSegment(largeScaleTaskServiceRepositorySet, taskName, segment3);
+        LargeScaleTaskService.setTaskReadyToProcess(largeScaleTaskServiceRepositorySet, taskName);
+        assertEquals(segment3.getId(), segment2.getNextSegmentId());
+
+        TakeTaskSegmentToExecuteResult brokenResult1 = LargeScaleTaskService.takeTaskSegmentToExecute(
+                largeScaleTaskServiceRepositorySet, taskName, currentTime, maxExecutionTime, maxTimeToTaskReady);
+        assertEquals(segment1.getId(), brokenResult1.getTaskSegment().getId());
+        LargeScaleTaskService.completeTaskSegment(largeScaleTaskServiceRepositorySet,
+                brokenResult1.getTaskSegment().getId());
+
+        // 由于链断了，后面新加的 segment2、segment3 都处理不到，任务会被错误地判定成已经完成。
+        TakeTaskSegmentToExecuteResult brokenResult2 = LargeScaleTaskService.takeTaskSegmentToExecute(
+                largeScaleTaskServiceRepositorySet, taskName, currentTime, maxExecutionTime, maxTimeToTaskReady);
+        assertNull(brokenResult2.getTaskSegment());
+        assertTrue(brokenResult2.isTaskCompleted());
+
+        assertTrue(LargeScaleTaskService.repairTaskSegmentChain(largeScaleTaskServiceRepositorySet,
+                taskName, Arrays.asList(segment2, segment3)));
+        assertFalse(LargeScaleTaskService.repairTaskSegmentChain(largeScaleTaskServiceRepositorySet,
+                taskName, Arrays.asList(segment2, segment3)));
+
+        TakeTaskSegmentToExecuteResult result1 = LargeScaleTaskService.takeTaskSegmentToExecute(
+                largeScaleTaskServiceRepositorySet, taskName, currentTime, maxExecutionTime, maxTimeToTaskReady);
+        assertEquals(segment2.getId(), result1.getTaskSegment().getId());
+        LargeScaleTaskService.completeTaskSegment(largeScaleTaskServiceRepositorySet,
+                result1.getTaskSegment().getId());
+
+        TakeTaskSegmentToExecuteResult result2 = LargeScaleTaskService.takeTaskSegmentToExecute(
+                largeScaleTaskServiceRepositorySet, taskName, currentTime, maxExecutionTime, maxTimeToTaskReady);
+        assertEquals(segment3.getId(), result2.getTaskSegment().getId());
+        LargeScaleTaskService.completeTaskSegment(largeScaleTaskServiceRepositorySet,
+                result2.getTaskSegment().getId());
+
+        TakeTaskSegmentToExecuteResult result3 = LargeScaleTaskService.takeTaskSegmentToExecute(
+                largeScaleTaskServiceRepositorySet, taskName, currentTime, maxExecutionTime, maxTimeToTaskReady);
+        assertTrue(result3.isTaskCompleted());
+        assertNull(result3.getTaskSegment());
     }
 
     LargeScaleTaskServiceRepositorySet largeScaleTaskServiceRepositorySet = new LargeScaleTaskServiceRepositorySet() {

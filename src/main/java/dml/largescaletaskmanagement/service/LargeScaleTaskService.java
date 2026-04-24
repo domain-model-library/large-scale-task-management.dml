@@ -73,6 +73,23 @@ public class LargeScaleTaskService {
         task.readyToProcess();
     }
 
+    /**
+     * taskSegments 需要是当前任务全部任务段的快照。链表本身没坏时不做任何改动；坏了就重连成一条可继续工作的链。
+     */
+    public static boolean repairTaskSegmentChain(LargeScaleTaskServiceRepositorySet largeScaleTaskServiceRepositorySet,
+                                                 String taskName,
+                                                 Iterable<? extends LargeScaleTaskSegment> taskSegments) {
+        LargeScaleTaskRepository<LargeScaleTask> taskRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskRepository();
+        LargeScaleTaskSegmentRepository<LargeScaleTaskSegment, Object> segmentRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskSegmentRepository();
+
+        LargeScaleTask task = taskRepository.take(taskName);
+        if (task == null) {
+            return false;
+        }
+        return TaskSegmentChainRepairSupport.repairChain(task.getFirstSegmentId(), task.getLastSegmentId(),
+                task::setFirstSegmentId, task::setLastSegmentId, segmentRepository, taskSegments);
+    }
+
     public static TakeTaskSegmentToExecuteResult takeTaskSegmentToExecute(LargeScaleTaskServiceRepositorySet largeScaleTaskServiceRepositorySet,
                                                                           String taskName, long currentTime, long maxSegmentExecutionTime, long maxTimeToTaskReady) {
         LargeScaleTaskRepository<LargeScaleTask> taskRepository = largeScaleTaskServiceRepositorySet.getLargeScaleTaskRepository();

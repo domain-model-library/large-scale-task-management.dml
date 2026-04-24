@@ -8,8 +8,12 @@ import dml.largescaletaskmanagement.service.repositoryset.PermanentLargeTaskServ
 import dml.largescaletaskmanagement.service.result.TakeTaskSegmentToExecuteResult;
 import org.junit.Test;
 
+import java.util.Arrays;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class ManagePermanentTask {
 
@@ -82,6 +86,64 @@ public class ManagePermanentTask {
         PermanentLargeTaskService.completeTaskSegment(permanentLargeTaskServiceRepositorySet,
                 takeTaskSegmentToExecuteResult4.getTaskSegment().getId());
 
+    }
+
+    @Test
+    public void testRepairBrokenChain() {
+        long currentTime = 0L;
+        long maxExecutionTime = 1000L;
+
+        PermanentLargeTaskService.createTask(permanentLargeTaskServiceRepositorySet,
+                new TestSingletonTask());
+
+        TestTaskSegment segment1 = new TestTaskSegment(1001L);
+        TestTaskSegment segment2 = new TestTaskSegment(1002L);
+        PermanentLargeTaskService.addTaskSegment(permanentLargeTaskServiceRepositorySet, segment1);
+        PermanentLargeTaskService.addTaskSegment(permanentLargeTaskServiceRepositorySet, segment2);
+
+        // 模拟 segment1 -> segment2 的链断了，但任务尾指针还指着 segment2。
+        segment1.setNextSegmentId(null);
+
+        // 断链之后继续追加任务段，说明新增数据存在，但执行永远走不到后面的链。
+        TestTaskSegment segment3 = new TestTaskSegment(1003L);
+        PermanentLargeTaskService.addTaskSegment(permanentLargeTaskServiceRepositorySet, segment3);
+        assertEquals(segment3.getId(), segment2.getNextSegmentId());
+
+        TakeTaskSegmentToExecuteResult brokenResult1 = PermanentLargeTaskService.takeTaskSegmentToExecute(
+                permanentLargeTaskServiceRepositorySet, currentTime, maxExecutionTime);
+        assertEquals(segment1.getId(), brokenResult1.getTaskSegment().getId());
+        PermanentLargeTaskService.completeTaskSegment(permanentLargeTaskServiceRepositorySet,
+                brokenResult1.getTaskSegment().getId());
+
+        // 常驻任务不会错误完成，而是会反复卡在断链前的头节点，永远处理不到新追加的 segment3。
+        TakeTaskSegmentToExecuteResult brokenResult2 = PermanentLargeTaskService.takeTaskSegmentToExecute(
+                permanentLargeTaskServiceRepositorySet, currentTime, maxExecutionTime);
+        assertEquals(segment1.getId(), brokenResult2.getTaskSegment().getId());
+        PermanentLargeTaskService.completeTaskSegment(permanentLargeTaskServiceRepositorySet,
+                brokenResult2.getTaskSegment().getId());
+
+        assertTrue(PermanentLargeTaskService.repairTaskSegmentChain(permanentLargeTaskServiceRepositorySet,
+                Arrays.asList(segment1, segment2, segment3)));
+        assertFalse(PermanentLargeTaskService.repairTaskSegmentChain(permanentLargeTaskServiceRepositorySet,
+                Arrays.asList(segment1, segment2, segment3)));
+
+        TakeTaskSegmentToExecuteResult result1 = PermanentLargeTaskService.takeTaskSegmentToExecute(
+                permanentLargeTaskServiceRepositorySet, currentTime, maxExecutionTime);
+        assertEquals(segment1.getId(), result1.getTaskSegment().getId());
+        PermanentLargeTaskService.completeTaskSegment(permanentLargeTaskServiceRepositorySet,
+                result1.getTaskSegment().getId());
+
+        TakeTaskSegmentToExecuteResult result2 = PermanentLargeTaskService.takeTaskSegmentToExecute(
+                permanentLargeTaskServiceRepositorySet, currentTime, maxExecutionTime);
+        assertEquals(segment2.getId(), result2.getTaskSegment().getId());
+        PermanentLargeTaskService.completeTaskSegment(permanentLargeTaskServiceRepositorySet,
+                result2.getTaskSegment().getId());
+
+        TakeTaskSegmentToExecuteResult result3 = PermanentLargeTaskService.takeTaskSegmentToExecute(
+                permanentLargeTaskServiceRepositorySet, currentTime, maxExecutionTime);
+        assertEquals(segment3.getId(), result3.getTaskSegment().getId());
+        PermanentLargeTaskService.completeTaskSegment(permanentLargeTaskServiceRepositorySet,
+                result3.getTaskSegment().getId());
     }
 
     PermanentLargeTaskServiceRepositorySet permanentLargeTaskServiceRepositorySet = new PermanentLargeTaskServiceRepositorySet() {

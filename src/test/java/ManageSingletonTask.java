@@ -10,6 +10,8 @@ import dml.largescaletaskmanagement.service.repositoryset.LargeScaleSingletonTas
 import dml.largescaletaskmanagement.service.result.TakeTaskSegmentToExecuteResult;
 import org.junit.Test;
 
+import java.util.Arrays;
+
 import static org.junit.Assert.*;
 
 public class ManageSingletonTask {
@@ -82,6 +84,64 @@ public class ManageSingletonTask {
         LargeScaleSingletonTask task3 = LargeScaleSingletonTaskService.createTask(largeScaleSingletonTaskServiceRepositorySet,
                 new TestSingletonTask(), currentTime);
         assertNotNull(task3);
+    }
+
+    @Test
+    public void testRepairBrokenChain() {
+        long currentTime = 0L;
+        long maxExecutionTime = 1000L;
+        long maxTimeToTaskReady = 1000L;
+
+        LargeScaleSingletonTaskService.createTask(largeScaleSingletonTaskServiceRepositorySet,
+                new TestSingletonTask(), currentTime);
+
+        TestTaskSegment segment1 = new TestTaskSegment(largeScaleTaskSegmentIDGenerator++);
+        TestTaskSegment segment2 = new TestTaskSegment(largeScaleTaskSegmentIDGenerator++);
+        LargeScaleSingletonTaskService.addTaskSegment(largeScaleSingletonTaskServiceRepositorySet, segment1);
+        LargeScaleSingletonTaskService.addTaskSegment(largeScaleSingletonTaskServiceRepositorySet, segment2);
+
+        // 模拟 segment1 -> segment2 的链断了，但任务尾指针还指着 segment2。
+        segment1.setNextSegmentId(null);
+
+        // 断链之后又新增了任务段，说明数据还在继续写入，只是执行链已经找不到它们了。
+        TestTaskSegment segment3 = new TestTaskSegment(largeScaleTaskSegmentIDGenerator++);
+        LargeScaleSingletonTaskService.addTaskSegment(largeScaleSingletonTaskServiceRepositorySet, segment3);
+        LargeScaleSingletonTaskService.setTaskReadyToProcess(largeScaleSingletonTaskServiceRepositorySet);
+        assertEquals(segment3.getId(), segment2.getNextSegmentId());
+
+        TakeTaskSegmentToExecuteResult brokenResult1 = LargeScaleSingletonTaskService.takeTaskSegmentToExecute(
+                largeScaleSingletonTaskServiceRepositorySet, currentTime, maxExecutionTime, maxTimeToTaskReady);
+        assertEquals(segment1.getId(), brokenResult1.getTaskSegment().getId());
+        LargeScaleSingletonTaskService.completeTaskSegment(largeScaleSingletonTaskServiceRepositorySet,
+                brokenResult1.getTaskSegment().getId());
+
+        // 由于链断了，后面新加的 segment2、segment3 都处理不到，任务会被错误地判定成已经完成。
+        TakeTaskSegmentToExecuteResult brokenResult2 = LargeScaleSingletonTaskService.takeTaskSegmentToExecute(
+                largeScaleSingletonTaskServiceRepositorySet, currentTime, maxExecutionTime, maxTimeToTaskReady);
+        assertNull(brokenResult2.getTaskSegment());
+        assertTrue(brokenResult2.isTaskCompleted());
+
+        assertTrue(LargeScaleSingletonTaskService.repairTaskSegmentChain(largeScaleSingletonTaskServiceRepositorySet,
+                Arrays.asList(segment2, segment3)));
+        assertFalse(LargeScaleSingletonTaskService.repairTaskSegmentChain(largeScaleSingletonTaskServiceRepositorySet,
+                Arrays.asList(segment2, segment3)));
+
+        TakeTaskSegmentToExecuteResult result1 = LargeScaleSingletonTaskService.takeTaskSegmentToExecute(
+                largeScaleSingletonTaskServiceRepositorySet, currentTime, maxExecutionTime, maxTimeToTaskReady);
+        assertEquals(segment2.getId(), result1.getTaskSegment().getId());
+        LargeScaleSingletonTaskService.completeTaskSegment(largeScaleSingletonTaskServiceRepositorySet,
+                result1.getTaskSegment().getId());
+
+        TakeTaskSegmentToExecuteResult result2 = LargeScaleSingletonTaskService.takeTaskSegmentToExecute(
+                largeScaleSingletonTaskServiceRepositorySet, currentTime, maxExecutionTime, maxTimeToTaskReady);
+        assertEquals(segment3.getId(), result2.getTaskSegment().getId());
+        LargeScaleSingletonTaskService.completeTaskSegment(largeScaleSingletonTaskServiceRepositorySet,
+                result2.getTaskSegment().getId());
+
+        TakeTaskSegmentToExecuteResult result3 = LargeScaleSingletonTaskService.takeTaskSegmentToExecute(
+                largeScaleSingletonTaskServiceRepositorySet, currentTime, maxExecutionTime, maxTimeToTaskReady);
+        assertTrue(result3.isTaskCompleted());
+        assertNull(result3.getTaskSegment());
     }
 
     LargeScaleSingletonTaskServiceRepositorySet largeScaleSingletonTaskServiceRepositorySet = new LargeScaleSingletonTaskServiceRepositorySet() {
